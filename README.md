@@ -1,0 +1,179 @@
+# opencode-visualizer
+
+[![CI](https://github.com/woss/opencode-visualizer/actions/workflows/ci.yml/badge.svg)](https://github.com/woss/opencode-visualizer/actions/workflows/ci.yml)
+[![Release](https://github.com/woss/opencode-visualizer/actions/workflows/release.yml/badge.svg)](https://github.com/woss/opencode-visualizer/actions/workflows/release.yml)
+[![Deno](https://img.shields.io/badge/deno-2.x-black?logo=deno)](https://deno.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Homebrew](https://img.shields.io/badge/brew-woss%2Ftap%2Focv-blue?logo=homebrew)](https://github.com/woss/homebrew-tap)
+
+ANSI terminal dashboard and CLI for exploring your
+[OpenCode](https://opencode.ai) database — sessions, tokens, costs, models, and
+project activity.
+
+![ocv dashboard](ocv-example.png)
+
+## Install
+
+### Homebrew (macOS & Linux)
+
+```bash
+brew install woss/tap/ocv
+```
+
+### Pre-built binary
+
+Download the latest binary from
+[Releases](https://github.com/woss/opencode-visualizer/releases):
+
+```bash
+# Linux x86_64
+curl -L https://github.com/woss/opencode-visualizer/releases/latest/download/ocv-x86_64-linux.tar.gz | tar xz
+./ocv
+```
+
+```bash
+# Linux ARM64 (e.g. Raspberry Pi)
+curl -L https://github.com/woss/opencode-visualizer/releases/latest/download/ocv-aarch64-linux.tar.gz | tar xz
+./ocv
+```
+
+```bash
+# macOS ARM64 (Apple Silicon)
+curl -L https://github.com/woss/opencode-visualizer/releases/latest/download/ocv-aarch64-macos.tar.gz | tar xz
+./ocv
+```
+
+### From source (requires Deno)
+
+```bash
+deno install --allow-read --allow-write --allow-env --allow-ffi -n ocv main.ts
+```
+
+### Compile a standalone binary
+
+```bash
+deno task compile       # Produces ./ocv
+```
+
+Cross-compile for other platforms:
+
+```bash
+deno task compile-all   # Produces ocv-x86_64-linux, ocv-aarch64-macos, ocv-aarch64-linux
+```
+
+## Usage
+
+```bash
+ocv                        # Show per-directory session overview (default)
+ocv stats                  # Detailed statistics
+ocv dash                   # Dashboard with bars and charts
+ocv dash --top=5           # Show top 5 items per section
+ocv dash --exclude=simstore,infra  # Exclude directories
+ocv dash --name=surrealdb-orm,woss.io  # Focus on specific directories
+ocv dash --all             # Show all items
+ocv sessions <path>        # List sessions matching directory path
+ocv session <id>           # Detailed info for a specific session
+ocv search <query>         # Search sessions by title or directory
+ocv --help                 # Top-level help
+ocv <command> --help       # Per-command help
+ocv --version              # Show version
+```
+
+### Output formats
+
+Every command supports `--output json` (or `-o json`):
+
+```bash
+ocv stats --output json              # Stats as JSON
+ocv sessions <path> -o json          # Sessions as JSON
+ocv dash --output json               # Dashboard data as JSON
+ocv overview --output json           # Overview as JSON
+ocv search <query> --output json     # Search results as JSON
+```
+
+### Excluding directories
+
+Two ways to hide directories from the dashboard:
+
+1. **CLI flag**: `ocv dash --exclude=secret-company,infrastructure`
+2. **Config file**: Edit `~/.config/ocv/.ocvignore` with gitignore-style
+   patterns:
+
+```ocvignore
+# One pattern per line — gitignore-style globs
+simstore              # exact directory name
+fork-*                # glob: any directory starting with fork-
+*site                 # glob: any directory ending with -site
+!important-site       # negation: re-include even if matched
+```
+
+### Filtering by directory
+
+Focus the dashboard on specific directories with `--name`:
+
+```bash
+ocv dash --name=surrealdb-orm,woss.io
+```
+
+Works on all dashboard panels — directories, models, providers, weekly activity,
+and costs. The directory section adapts to show exactly the named directories
+(instead of the top N). Accepts comma-separated directory names (not paths).
+
+### Session types
+
+The `sessions` and `search` commands show a "Type" column:
+
+- **Main** — top-level session (no parent)
+- **Sub** — subagent/delegated session (has a parent_id)
+
+## Commands
+
+| Command                  | Description                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `(no args)` / `overview` | Per-directory session overview table                                                                                       |
+| `stats`                  | Full statistics: sessions (active/archived), projects, tokens, cost, most-used model, app version range                    |
+| `dash`                   | ANSI dashboard with bars per directory, model, provider, weekly activity. Supports `--top`, `--all`, `--name`, `--exclude` |
+| `sessions <path>`        | Filtered session list matching a directory path                                                                            |
+| `session <id>`           | Single session detail with messages and todo breakdown                                                                     |
+| `search <query>`         | Full-text search over session titles and directories                                                                       |
+
+## Semantic versioning
+
+This project uses [semantic-release](https://semantic-release.gitbook.io/) with
+[conventional commits](https://www.conventionalcommits.org/). Version bumps are
+automatic based on commit messages:
+
+| Commit message prefix                                       | Version bump          |
+| ----------------------------------------------------------- | --------------------- |
+| `fix: ...`                                                  | Patch (1.0.0 → 1.0.1) |
+| `feat: ...`                                                 | Minor (1.0.0 → 1.1.0) |
+| `feat!: ...` or `fix!: ...` with `BREAKING CHANGE:` in body | Major (1.0.0 → 2.0.0) |
+| `chore: ...`, `docs: ...`, `refactor: ...`, `ci: ...`       | No release            |
+
+GitHub Releases are created automatically on push to `main` with compiled
+binaries attached.
+
+## Environment
+
+| Variable           | Default                               | Description                         |
+| ------------------ | ------------------------------------- | ----------------------------------- |
+| `OPENCODE_DB_PATH` | `~/.local/share/opencode/opencode.db` | Override the OpenCode database path |
+
+## How it works
+
+Reads the OpenCode SQLite database (`opencode.db`) directly via `@db/sqlite`.
+Queries aggregate token usage, session counts, model usage, version ranges, and
+per-project activity from the session, message, and part tables. All data is
+read-only — never writes to the database.
+
+## Build
+
+```bash
+deno check main.ts                          # Type-check
+deno lint                                    # Lint all source files
+deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv main.ts  # Build binary
+```
+
+## License
+
+MIT

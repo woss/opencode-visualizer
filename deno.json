@@ -1,0 +1,24 @@
+{
+  "name": "opencode-visualizer",
+  "author": "daniel maricic <daniel@woss.io>",
+  "license": "MIT",
+  "version": "0.1.0",
+  "exports": "./main.ts",
+  "fmt": {
+    "exclude": [".opencode"]
+  },
+  "lint": {
+    "exclude": [".opencode"]
+  },
+  "tasks": {
+    "compile": "deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv main.ts",
+    "compile-all": "deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-x86_64-linux --target x86_64-unknown-linux-gnu main.ts && deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-x86_64-macos --target x86_64-apple-darwin main.ts && deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-aarch64-macos --target aarch64-apple-darwin main.ts && deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-aarch64-linux --target aarch64-unknown-linux-gnu main.ts",
+    "start": "deno run --allow-read --allow-write --allow-env --allow-ffi --allow-net main.ts",
+    "check": "deno check main.ts"
+  },
+  "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7",
+    "@db/sqlite": "jsr:@db/sqlite@^0.12.0",
+    "@std/path": "jsr:@std/path@^1.0.0"
+  }
+}

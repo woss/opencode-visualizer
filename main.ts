@@ -1,0 +1,198 @@
+import { Command } from "@cliffy/command";
+import { resolve } from "@std/path";
+import {
+  getDbStats,
+  getDirectoryOverview,
+  getSessionDetail,
+  getSessionsByDirectory,
+  openDb,
+  searchSessions,
+} from "./lib/db.ts";
+import { showDashboard } from "./lib/dashboard.ts";
+import { showSpinner } from "./lib/spinner.ts";
+import {
+  formatDbStats,
+  formatOverview,
+  formatSearchResults,
+  formatSessionDetail,
+  formatSessionList,
+} from "./lib/format.ts";
+
+/**
+ * Resolve the opencode DB path from environment or default.
+ */
+function resolveDbPath(): string {
+  const envPath = Deno.env.get("OPENCODE_DB_PATH");
+  if (envPath) return resolve(envPath);
+
+  const home = Deno.env.get("HOME") ?? Deno.env.get("USERPROFILE");
+  if (!home) {
+    throw new Error(
+      "Cannot determine home directory. Set OPENCODE_DB_PATH explicitly.",
+    );
+  }
+
+  return resolve(home, ".local/share/opencode/opencode.db");
+}
+
+/**
+ * Format output as JSON or use the provided text formatter.
+ */
+function formatOutput<T>(
+  data: T,
+  format: string,
+  formatter: (d: T) => string,
+): void {
+  if (format === "json") {
+    console.log(JSON.stringify(data, null, 2));
+  } else {
+    console.log(formatter(data));
+  }
+}
+
+/**
+ * Main entry point.
+ */
+async function main() {
+  const dbPath = resolveDbPath();
+
+  // No args → show dashboard (default behavior)
+  if (Deno.args.length === 0) {
+    showDashboard(dbPath, { top: 10, all: false, jsonMode: false });
+    return;
+  }
+
+  await new Command()
+    .name("opencode-visualizer")
+    .version("0.1.0")
+    .description(
+      "OpenCode database visualizer and analytics. Reads ~/.local/share/opencode/opencode.db",
+    )
+    .globalOption(
+      "-o, --output <format:string>",
+      "Output format: text (default) or json",
+      { default: "text" },
+    )
+    .command("dash", "Interactive dashboard with charts and stats")
+    .option("--top <n:number>", "Show top N items per section", { default: 10 })
+    .option("--all", "Show all items instead of top N")
+    .option(
+      "--exclude <dirs:string>",
+      "Exclude directories (comma-separated names)",
+    )
+    .option(
+      "--name <dirs:string>",
+      "Filter all panels to specific directories (comma-separated names)",
+    )
+    .action((options) => {
+      const names = options.name
+        ? options.name.split(",").map((n: string) => n.trim()).filter((
+          n: string,
+        ) => n.length > 0)
+        : undefined;
+      showDashboard(dbPath, {
+        top: options.top ?? 10,
+        all: options.all ?? false,
+        exclude: options.exclude,
+        names,
+        jsonMode: options.output === "json",
+      });
+    })
+    .command("sessions", "List sessions matching a directory path pattern")
+    .arguments("<path:string>")
+    .action((options, path: string) => {
+      const spinner = showSpinner("Loading data...");
+      try {
+        const db = openDb(dbPath);
+        const rows = getSessionsByDirectory(db, path);
+        spinner.stop();
+        formatOutput(rows, options.output, formatSessionList);
+        db.close();
+      } catch (cause) {
+        spinner.stop();
+        console.error(`Error: ${cause}`);
+        Deno.exit(1);
+      }
+    })
+    .command("session", "Show detailed info for a single session")
+    .arguments("<id:string>")
+    .action((options, id: string) => {
+      const spinner = showSpinner("Loading data...");
+      try {
+        const db = openDb(dbPath);
+        const detail = getSessionDetail(db, id);
+        spinner.stop();
+        if (options.output === "json") {
+          console.log(JSON.stringify(detail, null, 2));
+        } else {
+          console.log(
+            formatSessionDetail(
+              detail.session,
+              detail.message_count,
+              detail.todos,
+            ),
+          );
+        }
+        db.close();
+      } catch (cause) {
+        spinner.stop();
+        console.error(`Error: ${cause}`);
+        Deno.exit(1);
+      }
+    })
+    .command("search", "Search sessions by title or directory")
+    .arguments("<query:string>")
+    .action((options, query: string) => {
+      const spinner = showSpinner("Loading data...");
+      try {
+        const db = openDb(dbPath);
+        const rows = searchSessions(db, query);
+        spinner.stop();
+        formatOutput(rows, options.output, formatSearchResults);
+        db.close();
+      } catch (cause) {
+        spinner.stop();
+        console.error(`Error: ${cause}`);
+        Deno.exit(1);
+      }
+    })
+    .command("stats", "Show overall database statistics")
+    .action((options) => {
+      const spinner = showSpinner("Loading data...");
+      try {
+        const db = openDb(dbPath);
+        const stats = getDbStats(db);
+        spinner.stop();
+        if (options.output === "json") {
+          console.log(JSON.stringify(stats, null, 2));
+        } else {
+          console.log(formatDbStats(stats));
+        }
+        db.close();
+      } catch (cause) {
+        spinner.stop();
+        console.error(`Error: ${cause}`);
+        Deno.exit(1);
+      }
+    })
+    .command("overview", "Show per-directory session overview table")
+    .action((options) => {
+      const spinner = showSpinner("Loading data...");
+      try {
+        const db = openDb(dbPath);
+        const rows = getDirectoryOverview(db);
+        spinner.stop();
+        formatOutput(rows, options.output, formatOverview);
+        db.close();
+      } catch (cause) {
+        spinner.stop();
+        console.error(`Error: ${cause}`);
+        Deno.exit(1);
+      }
+    })
+    .parse(Deno.args);
+}
+
+if (import.meta.main) {
+  main();
+}

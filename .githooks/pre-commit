@@ -1,0 +1,44 @@
+#!/bin/sh
+# Pre-commit hook: run Deno checks on staged files
+
+echo "🔍 Running pre-commit checks..."
+
+# Get staged .ts files (excluding node_modules, .opencode)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ts$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+  echo "✨ No TypeScript files staged, skipping checks."
+  exit 0
+fi
+
+# Check formatting
+echo "📐 Checking format..."
+deno fmt --check --quiet 2>/dev/null
+FMT_EXIT=$?
+if [ $FMT_EXIT -ne 0 ]; then
+  echo "❌ Formatting issues found. Run 'deno fmt' to fix."
+  exit 1
+fi
+echo "✅ Format OK"
+
+# Lint
+echo "🔎 Linting..."
+deno lint --quiet 2>/dev/null
+LINT_EXIT=$?
+if [ $LINT_EXIT -ne 0 ]; then
+  echo "❌ Lint errors found."
+  exit 1
+fi
+echo "✅ Lint OK"
+
+# Type check
+echo "📋 Type checking..."
+deno check main.ts lib/*.ts 2>/dev/null
+CHECK_EXIT=$?
+if [ $CHECK_EXIT -ne 0 ]; then
+  echo "❌ Type errors found."
+  exit 1
+fi
+echo "✅ Types OK"
+
+echo "✅ All checks passed!"
