@@ -3,16 +3,9 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    ["@semantic-release/github", {
-      "assets": [
-        { "path": "ocv-x86_64-linux.tar.gz", "label": "Linux x86_64" },
-        { "path": "ocv-aarch64-linux.tar.gz", "label": "Linux ARM64" },
-        {
-          "path": "ocv-aarch64-macos.tar.gz",
-          "label": "macOS ARM64 (Apple Silicon)"
-        },
-        { "path": "ocv-x86_64-macos.tar.gz", "label": "macOS x86_64 (Intel)" }
-      ]
-    }]
+    ["@semantic-release/exec", {
+      "prepareCmd": "echo \"export const VERSION = '${nextRelease.version}';\" > version.ts"
+    }],
+    ["@semantic-release/github"]
   ]
 }

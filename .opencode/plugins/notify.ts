@@ -14,7 +14,6 @@
  * Uses cmux CLI first (if available), then desktop notification fallback:
  * - cmux: `cmux notify --title ... --subtitle ... --body ...`
  * - cmux status: `cmux set-status <key> <value>` / `cmux clear-status <key>`
- * - macOS: alerter (native Notification Center, requires alerter on PATH)
  * - Windows: SnoreToast (native toast notifications)
  * - Linux: notify-send (native desktop notifications)
  */
@@ -425,7 +424,6 @@ async function sendDesktopNotification(
   };
 
   await sendDesktopNotificationByPlatform({
-    platform: process.platform,
     title,
     message,
     subtitle: options.subtitle,

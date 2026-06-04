@@ -2,7 +2,6 @@
   "name": "opencode-visualizer",
   "author": "daniel maricic <daniel@woss.io>",
   "license": "MIT",
-  "version": "0.1.0",
   "exports": "./main.ts",
   "fmt": {
     "exclude": [".opencode"]

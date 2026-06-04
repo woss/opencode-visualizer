@@ -10,6 +10,7 @@ import {
 } from "./lib/db.ts";
 import { showDashboard } from "./lib/dashboard.ts";
 import { showSpinner } from "./lib/spinner.ts";
+import { VERSION } from "./version.ts";
 import {
   formatDbStats,
   formatOverview,
@@ -64,7 +65,7 @@ async function main() {
 
   await new Command()
     .name("opencode-visualizer")
-    .version("0.1.0")
+    .version(VERSION)
     .description(
       "OpenCode database visualizer and analytics. Reads ~/.local/share/opencode/opencode.db",
     )
