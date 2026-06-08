@@ -130,15 +130,15 @@ The `sessions` and `search` commands show a "Type" column:
 
 ## Commands
 
-| Command                  | Description                                                                                                                |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `(no args)` / `overview` | Per-directory session overview table                                                                                       |
-| `stats`                  | Full statistics: sessions (active/archived), projects, tokens, cost, most-used model, app version range                    |
-| `dash`                   | ANSI dashboard with bars per directory, model, provider, weekly activity. Supports `--top`, `--all`, `--name`, `--exclude` |
-| `sessions <path>`        | Filtered session list matching a directory path                                                                            |
-| `session <id>`           | Single session detail with messages and todo breakdown                                                                     |
-| `search <query>`         | Full-text search over session titles and directories       |
-| `rename --from-dir <old> -d <new>` | Batch-rename session directory and path fields when project moves |
+| Command                            | Description                                                                                                                |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `(no args)` / `overview`           | Per-directory session overview table                                                                                       |
+| `stats`                            | Full statistics: sessions (active/archived), projects, tokens, cost, most-used model, app version range                    |
+| `dash`                             | ANSI dashboard with bars per directory, model, provider, weekly activity. Supports `--top`, `--all`, `--name`, `--exclude` |
+| `sessions <path>`                  | Filtered session list matching a directory path                                                                            |
+| `session <id>`                     | Single session detail with messages and todo breakdown                                                                     |
+| `search <query>`                   | Full-text search over session titles and directories                                                                       |
+| `rename --from-dir <old> -d <new>` | Batch-rename session directory and path fields when project moves                                                          |
 
 ## Semantic versioning
 

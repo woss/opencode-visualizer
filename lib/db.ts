@@ -546,7 +546,7 @@ export function searchSessions(
     FROM session s
     WHERE s.title LIKE ? OR s.directory LIKE ?
     ORDER BY s.time_created DESC
-  `  ).all(pattern, pattern),
+  `).all(pattern, pattern),
   ) as SessionListRow[];
 }
 
