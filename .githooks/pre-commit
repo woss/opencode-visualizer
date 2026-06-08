@@ -1,44 +1,43 @@
 #!/bin/sh
-# Pre-commit hook: run Deno checks on staged files
+# GITBUTLER_MANAGED_HOOK_V1
+# This hook is managed by GitButler to prevent accidental commits on the workspace branch.
+# Your original pre-commit hook has been preserved as 'pre-commit-user'.
 
-echo "🔍 Running pre-commit checks..."
+HOOKS_DIR=$(dirname "$0")
 
-# Get staged .ts files (excluding node_modules, .opencode)
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ts$' || true)
-
-if [ -z "$STAGED_FILES" ]; then
-  echo "✨ No TypeScript files staged, skipping checks."
-  exit 0
+# Run user's hook first if it exists - if it fails, stop here
+if [ -x "$HOOKS_DIR/pre-commit-user" ]; then
+    "$HOOKS_DIR/pre-commit-user" "$@" || exit $?
 fi
 
-# Check formatting
-echo "📐 Checking format..."
-deno fmt --check --quiet 2>/dev/null
-FMT_EXIT=$?
-if [ $FMT_EXIT -ne 0 ]; then
-  echo "❌ Formatting issues found. Run 'deno fmt' to fix."
-  exit 1
-fi
-echo "✅ Format OK"
+# Get the current branch name
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
 
-# Lint
-echo "🔎 Linting..."
-deno lint --quiet 2>/dev/null
-LINT_EXIT=$?
-if [ $LINT_EXIT -ne 0 ]; then
-  echo "❌ Lint errors found."
-  exit 1
+if [ "$BRANCH" = "gitbutler/workspace" ]; then
+    echo ""
+    echo "GITBUTLER_ERROR: Cannot commit directly to gitbutler/workspace branch."
+    echo ""
+    echo "GitButler manages commits on this branch. Please use GitButler to commit your changes:"
+    echo "  - Use the GitButler app to create commits"
+    echo "  - Or run 'but commit' from the command line"
+    echo ""
+    echo "If you want to exit GitButler mode and use normal git:"
+    echo "  - Run 'but teardown' to switch to a regular branch"
+    echo "  - Or directly checkout another branch: git checkout <branch>"
+    echo ""
+    echo "If you no longer have the GitButler CLI installed, you can simply remove this hook and checkout another branch:"
+    printf '  rm "%s/pre-commit"\n' "$HOOKS_DIR"
+    echo ""
+    exit 1
 fi
-echo "✅ Lint OK"
 
-# Type check
-echo "📋 Type checking..."
-deno check main.ts lib/*.ts 2>/dev/null
-CHECK_EXIT=$?
-if [ $CHECK_EXIT -ne 0 ]; then
-  echo "❌ Type errors found."
-  exit 1
+# Not on workspace branch - run user's original hook if it exists
+if [ -x "$HOOKS_DIR/pre-commit-user" ]; then
+    echo ""
+    echo "WARNING: GitButler's pre-commit hook is still installed but you're not on gitbutler/workspace."
+    echo "If you're no longer using GitButler, you can restore your original hook:"
+    printf '  mv "%s/pre-commit-user" "%s/pre-commit"\n' "$HOOKS_DIR" "$HOOKS_DIR"
+    echo ""
 fi
-echo "✅ Types OK"
 
-echo "✅ All checks passed!"
+exit 0

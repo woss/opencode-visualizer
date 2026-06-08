@@ -74,6 +74,7 @@ ocv dash --all             # Show all items
 ocv sessions <path>        # List sessions matching directory path
 ocv session <id>           # Detailed info for a specific session
 ocv search <query>         # Search sessions by title or directory
+ocv rename --from-dir <old-dir> -d <new-dir>  # Batch-rename session directory
 ocv --help                 # Top-level help
 ocv <command> --help       # Per-command help
 ocv --version              # Show version
@@ -89,6 +90,7 @@ ocv sessions <path> -o json          # Sessions as JSON
 ocv dash --output json               # Dashboard data as JSON
 ocv overview --output json           # Overview as JSON
 ocv search <query> --output json     # Search results as JSON
+ocv rename --from-dir ... -d ... --output json   # Rename result as JSON
 ```
 
 ### Excluding directories
@@ -135,7 +137,8 @@ The `sessions` and `search` commands show a "Type" column:
 | `dash`                   | ANSI dashboard with bars per directory, model, provider, weekly activity. Supports `--top`, `--all`, `--name`, `--exclude` |
 | `sessions <path>`        | Filtered session list matching a directory path                                                                            |
 | `session <id>`           | Single session detail with messages and todo breakdown                                                                     |
-| `search <query>`         | Full-text search over session titles and directories                                                                       |
+| `search <query>`         | Full-text search over session titles and directories       |
+| `rename --from-dir <old> -d <new>` | Batch-rename session directory and path fields when project moves |
 
 ## Semantic versioning
 
@@ -163,8 +166,8 @@ binaries attached.
 
 Reads the OpenCode SQLite database (`opencode.db`) directly via `@db/sqlite`.
 Queries aggregate token usage, session counts, model usage, version ranges, and
-per-project activity from the session, message, and part tables. All data is
-read-only — never writes to the database.
+per-project activity from the session, message, and part tables. Most commands
+are read-only; the `rename` command writes to update directory and path fields.
 
 ## Build
 

@@ -6,6 +6,7 @@ import type {
   ModelCostRow,
   ModelStat,
   ProviderStat,
+  RenameResult,
   SessionDetail,
   SessionListRow,
   SessionRow,
@@ -14,14 +15,19 @@ import type {
 } from "./types.ts";
 
 /**
- * Open the opencode SQLite DB in read-only mode.
+ * Open the opencode SQLite DB.
  * Enables int64 support so timestamps (>2^31) aren't truncated.
+ * Defaults to read-only mode; pass readonly=false for write access.
  * Throws with descriptive message if the file doesn't exist or can't be opened.
  */
-export function openDb(dbPath: string): Database {
+export function openDb(dbPath: string, readonly: boolean = true): Database {
   try {
-    const db = new Database(dbPath, { readonly: true, int64: true });
-    db.exec("PRAGMA journal_mode=WAL;");
+    const db = new Database(dbPath, { readonly, int64: true });
+    if (!readonly) {
+      db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;");
+    } else {
+      db.exec("PRAGMA journal_mode=WAL;");
+    }
     return db;
   } catch (cause) {
     throw new Error(`Cannot open DB at ${dbPath}: ${cause}`);
@@ -540,6 +546,59 @@ export function searchSessions(
     FROM session s
     WHERE s.title LIKE ? OR s.directory LIKE ?
     ORDER BY s.time_created DESC
-  `).all(pattern, pattern),
+  `  ).all(pattern, pattern),
   ) as SessionListRow[];
+}
+
+/**
+ * Batch-rename session directory and path.
+ * Updates exact matches and subdirectory prefixes on the directory column.
+ * For the path field, replaces the old directory prefix with the new one
+ * when the path starts with the oldDir prefix.
+ * Runs inside a BEGIN/COMMIT transaction for atomicity.
+ */
+export function renameDirectory(
+  db: Database,
+  oldDir: string,
+  newDir: string,
+): RenameResult {
+  if (!oldDir || !newDir) {
+    throw new Error("oldDir and newDir must be non-empty strings");
+  }
+
+  // Normalize trailing slashes
+  const oldDirNorm = oldDir.replace(/\/+$/, "");
+  const newDirNorm = newDir.replace(/\/+$/, "");
+
+  db.exec("BEGIN");
+
+  try {
+    // Update exact directory matches
+    const exactChanges = db.prepare(
+      "UPDATE session SET directory = ? WHERE directory = ?",
+    ).run(newDirNorm, oldDirNorm);
+
+    // Update subdirectory matches (directory LIKE oldDirNorm + "/%")
+    const subChanges = db.prepare(
+      "UPDATE session SET directory = REPLACE(directory, ?, ?) WHERE directory LIKE ?",
+    ).run(`${oldDirNorm}/`, `${newDirNorm}/`, `${oldDirNorm}/%`);
+
+    // Update path field where it starts with oldDir prefix
+    db.prepare(
+      "UPDATE session SET path = REPLACE(path, ?, ?) WHERE path LIKE ?",
+    ).run(oldDirNorm, newDirNorm, `${oldDirNorm}%`);
+
+    db.exec("COMMIT");
+
+    const affected = exactChanges + subChanges;
+
+    return {
+      old_directory: oldDirNorm,
+      new_directory: newDirNorm,
+      affected_sessions: affected,
+    };
+  } catch (cause) {
+    db.exec("ROLLBACK");
+    throw new Error(`Failed to rename directory: ${cause}`);
+  }
 }

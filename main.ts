@@ -6,6 +6,7 @@ import {
   getSessionDetail,
   getSessionsByDirectory,
   openDb,
+  renameDirectory,
   searchSessions,
 } from "./lib/db.ts";
 import { showDashboard } from "./lib/dashboard.ts";
@@ -14,6 +15,7 @@ import { VERSION } from "./version.ts";
 import {
   formatDbStats,
   formatOverview,
+  formatRenameResult,
   formatSearchResults,
   formatSessionDetail,
   formatSessionList,
@@ -150,6 +152,31 @@ async function main() {
         const rows = searchSessions(db, query);
         spinner.stop();
         formatOutput(rows, options.output, formatSearchResults);
+        db.close();
+      } catch (cause) {
+        spinner.stop();
+        console.error(`Error: ${cause}`);
+        Deno.exit(1);
+      }
+    })
+    .command("rename", "Rename session directory (batch)")
+    .option(
+      "--from-dir <dir:string>",
+      "Current directory path to match",
+      { required: true },
+    )
+    .option(
+      "-d, --directory <dir:string>",
+      "New directory path",
+      { required: true },
+    )
+    .action((options) => {
+      const spinner = showSpinner("Renaming sessions...");
+      try {
+        const db = openDb(dbPath, false);
+        const result = renameDirectory(db, options.fromDir, options.directory);
+        spinner.stop();
+        formatOutput(result, options.output, formatRenameResult);
         db.close();
       } catch (cause) {
         spinner.stop();

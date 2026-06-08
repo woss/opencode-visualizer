@@ -1,6 +1,7 @@
 import type {
   DbStats,
   DirectoryOverviewRow,
+  RenameResult,
   SessionListRow,
   SessionRow,
   TodoSummary,
@@ -299,6 +300,19 @@ export function formatDbStats(stats: DbStats): string {
     `  Newest session:        ${formatTime(stats.newest_session)}`,
   );
 
+  return lines.join("\n");
+}
+
+/**
+ * Format the result of a rename operation.
+ */
+export function formatRenameResult(result: RenameResult): string {
+  const lines: string[] = [];
+  lines.push("Directory renamed successfully");
+  lines.push("─".repeat(40));
+  lines.push(`  Old directory:  ${result.old_directory}`);
+  lines.push(`  New directory:  ${result.new_directory}`);
+  lines.push(`  Sessions affected: ${result.affected_sessions}`);
   return lines.join("\n");
 }
 
