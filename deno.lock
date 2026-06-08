@@ -6,6 +6,7 @@
     "jsr:@cliffy/internal@1.1.1": "1.1.1",
     "jsr:@cliffy/table@1.1.1": "1.1.1",
     "jsr:@db/sqlite@0.12": "0.12.0",
+    "jsr:@db/sqlite@0.12.0": "0.12.0",
     "jsr:@denosaurs/plug@1": "1.1.0",
     "jsr:@std/assert@0.217": "0.217.0",
     "jsr:@std/encoding@1": "1.0.10",

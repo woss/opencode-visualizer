@@ -156,3 +156,9 @@ export interface DbStats {
   version_min: string | null;
   version_max: string | null;
 }
+
+export interface RenameResult {
+  old_directory: string;
+  new_directory: string;
+  affected_sessions: number;
+}
