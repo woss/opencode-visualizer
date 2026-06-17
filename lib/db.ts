@@ -84,7 +84,11 @@ function convertRow<T>(row: T): T {
 /**
  * Return aggregate statistics across all tables.
  */
-export function getDbStats(db: Database, names?: string[]): DbStats {
+export async function getDbStats(
+  db: Database,
+  dbPath?: string,
+  names?: string[],
+): Promise<DbStats> {
   const df = dirFilter(names);
   interface CountRow {
     c: number;
@@ -231,7 +235,10 @@ export function getDbStats(db: Database, names?: string[]): DbStats {
     ? Math.max(1, Math.round((newest - oldest) / 86_400_000))
     : 1;
 
+  const dbSize = dbPath ? (await Deno.stat(dbPath)).size : 0;
+
   return {
+    dbSize,
     projects: projectCount,
     sessions: sessionCount,
     active_sessions: activeCount,

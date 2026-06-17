@@ -155,6 +155,7 @@ export interface DbStats {
   top_provider: { provider: string; count: number } | null;
   version_min: string | null;
   version_max: string | null;
+  dbSize: number;
 }
 
 export interface RenameResult {

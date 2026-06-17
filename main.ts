@@ -61,7 +61,7 @@ async function main() {
 
   // No args → show dashboard (default behavior)
   if (Deno.args.length === 0) {
-    showDashboard(dbPath, { top: 10, all: false, jsonMode: false });
+    await showDashboard(dbPath, { top: 10, all: false, jsonMode: false });
     return;
   }
 
@@ -87,13 +87,13 @@ async function main() {
       "--name <dirs:string>",
       "Filter all panels to specific directories (comma-separated names)",
     )
-    .action((options) => {
+    .action(async (options) => {
       const names = options.name
         ? options.name.split(",").map((n: string) => n.trim()).filter((
           n: string,
         ) => n.length > 0)
         : undefined;
-      showDashboard(dbPath, {
+      await showDashboard(dbPath, {
         top: options.top ?? 10,
         all: options.all ?? false,
         exclude: options.exclude,
@@ -185,11 +185,11 @@ async function main() {
       }
     })
     .command("stats", "Show overall database statistics")
-    .action((options) => {
+    .action(async (options) => {
       const spinner = showSpinner("Loading data...");
       try {
         const db = openDb(dbPath);
-        const stats = getDbStats(db);
+        const stats = await getDbStats(db, dbPath);
         spinner.stop();
         if (options.output === "json") {
           console.log(JSON.stringify(stats, null, 2));

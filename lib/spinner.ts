@@ -13,7 +13,7 @@ export interface Spinner {
 export function showSpinner(msg: string): Spinner {
   let stopped = false;
   let i = 0;
-  const isTTY = Deno.stdout.isTerminal();
+  const isTTY = Deno.stderr.isTerminal();
 
   if (!isTTY) {
     console.error(msg);
@@ -23,7 +23,7 @@ export function showSpinner(msg: string): Spinner {
   const timer = setInterval(() => {
     if (stopped) return;
     const frame = FRAMES[i % FRAMES.length];
-    Deno.stdout.writeSync(new TextEncoder().encode(`\r${frame} ${msg}`));
+    Deno.stderr.writeSync(new TextEncoder().encode(`\r${frame} ${msg}`));
     i++;
   }, INTERVAL_MS);
 
@@ -32,7 +32,7 @@ export function showSpinner(msg: string): Spinner {
       if (stopped) return;
       stopped = true;
       clearInterval(timer);
-      Deno.stdout.writeSync(new TextEncoder().encode("\r\x1b[K"));
+      Deno.stderr.writeSync(new TextEncoder().encode("\r\x1b[K"));
     },
   };
 }

@@ -121,10 +121,10 @@ export interface DashOptions {
 
 // ── Dashboard ────────────────────────────────────────────────────
 
-export function showDashboard(
+export async function showDashboard(
   dbPath: string,
   opts: DashOptions,
-): void {
+): Promise<void> {
   const spinner = showSpinner("Loading session data...");
   const db = openDb(dbPath);
 
@@ -144,7 +144,7 @@ export function showDashboard(
     }
   }
 
-  const stats = getDbStats(db, filterNames);
+  const stats = await getDbStats(db, dbPath, filterNames);
 
   // Load .ocvignore patterns
   const ignoreRules = loadOcvignore();
@@ -278,7 +278,7 @@ export function showDashboard(
     A.fmtNum(stats.sessions)
   } sessions \u00B7 ${activePct}% active \u00B7 ${stats.projects} projects \u00B7 $${
     stats.total_cost.toFixed(2)
-  }`;
+  } \u00B7 DB size: ${A.fmtBinaryBytes(stats.dbSize)}`;
   lines.push(fullLine(headerText, inner));
 
   // Split separator after header
