@@ -1,3 +1,5 @@
+import { Table } from "@cliffy/table";
+import { fmtBinaryBytes } from "./ansi.ts";
 import type {
   DbStats,
   DirectoryOverviewRow,
@@ -51,34 +53,14 @@ interface Column {
 function formatTable(rows: string[][], columns: Column[]): string {
   if (rows.length === 0) return "No results.";
 
-  // Calculate column widths from headers and data
-  const colWidths: number[] = columns.map((c, i) => {
-    const headerLen = c.label.length;
-    let maxData = 0;
-    for (const row of rows) {
-      const val = row[i] ?? "";
-      maxData = Math.max(maxData, val.length);
-    }
-    return Math.max(headerLen, maxData);
-  });
-
-  const lines: string[] = [];
-
-  // Header row
-  const headerParts = columns.map((c, i) => c.label.padEnd(colWidths[i]));
-  lines.push(headerParts.join("  "));
-  lines.push(columns.map((_, i) => "─".repeat(colWidths[i])).join("──"));
-
-  // Data rows
-  for (const row of rows) {
-    const parts = row.map((val, i) => {
-      const w = colWidths[i];
-      return columns[i].align === "right" ? val.padStart(w) : val.padEnd(w);
-    });
-    lines.push(parts.join("  "));
-  }
-
-  return lines.join("\n");
+  const headers = columns.map((c) => c.label);
+  return new Table()
+    .header(headers)
+    .body(rows)
+    .border(false)
+    .padding(2)
+    .toString()
+    .trimEnd();
 }
 
 // ── Display formatters ───────────────────────────────────────────────────
@@ -232,72 +214,118 @@ export function formatDbStats(stats: DbStats): string {
   const lines: string[] = [];
   lines.push("OpenCode Database Statistics");
   lines.push("─".repeat(50));
-  lines.push(`  Projects:              ${formatNumber(stats.projects)}`);
-  lines.push(`  Sessions:              ${formatNumber(stats.sessions)}`);
-  lines.push(`  ├ Active:              ${formatNumber(stats.active_sessions)}`);
-  lines.push(
-    `  └ Archived:            ${formatNumber(stats.archived_sessions)}`,
-  );
-  lines.push(`  Messages:              ${formatNumber(stats.messages)}`);
-  lines.push(`  Parts:                 ${formatNumber(stats.parts)}`);
-  lines.push(`  Todos:                 ${formatNumber(stats.todos)}`);
-  lines.push(`  Distinct Directories:  ${formatNumber(stats.directories)}`);
+
+  // General section
+  const general: [string, string][] = [
+    ["Projects:", formatNumber(stats.projects)],
+    ["Sessions:", formatNumber(stats.sessions)],
+    ["├ Active:", formatNumber(stats.active_sessions)],
+    ["└ Archived:", formatNumber(stats.archived_sessions)],
+    ["Messages:", formatNumber(stats.messages)],
+    ["Parts:", formatNumber(stats.parts)],
+    ["Todos:", formatNumber(stats.todos)],
+    ["Distinct Directories:", formatNumber(stats.directories)],
+  ];
   if (stats.top_model) {
-    lines.push(
-      `  Most Used Model:      ${stats.top_model.model} (${
+    general.push([
+      "Most Used Model:",
+      `${stats.top_model.model} (${
         formatNumber(stats.top_model.count)
       } sessions)`,
-    );
+    ]);
   }
   if (stats.top_provider) {
-    lines.push(
-      `  Most Used Provider:    ${stats.top_provider.provider} (${
+    general.push([
+      "Most Used Provider:",
+      `${stats.top_provider.provider} (${
         formatNumber(stats.top_provider.count)
       } sessions)`,
-    );
+    ]);
   }
   if (stats.version_min && stats.version_max) {
-    lines.push(
-      `  App Versions:         ${stats.version_min} → ${stats.version_max}`,
-    );
+    general.push([
+      "App Versions:",
+      `${stats.version_min} → ${stats.version_max}`,
+    ]);
   }
+  general.push([
+    "Period:",
+    `${formatNumber(Math.round(stats.total_days))} days`,
+  ]);
+
   lines.push(
-    `  Period:               ${
-      formatNumber(Math.round(stats.total_days))
-    } days`,
+    new Table()
+      .body(general)
+      .padding(2)
+      .border(false)
+      .toString()
+      .trimEnd()
+      .split("\n")
+      .map((l) => "  " + l)
+      .join("\n"),
   );
   lines.push("");
+
+  // Session Activity section
+  const activity: [string, string][] = [
+    ["Daily avg:", `${stats.daily_avg.toFixed(1)} sessions/day`],
+    ["Weekly avg:", `${stats.weekly_avg.toFixed(1)} sessions/week`],
+    ["Monthly avg:", `${stats.monthly_avg.toFixed(1)} sessions/month`],
+  ];
   lines.push("Session Activity");
   lines.push(
-    `  Daily avg:            ${stats.daily_avg.toFixed(1)} sessions/day`,
-  );
-  lines.push(
-    `  Weekly avg:           ${stats.weekly_avg.toFixed(1)} sessions/week`,
-  );
-  lines.push(
-    `  Monthly avg:          ${stats.monthly_avg.toFixed(1)} sessions/month`,
+    new Table()
+      .body(activity)
+      .padding(2)
+      .border(false)
+      .toString()
+      .trimEnd()
+      .split("\n")
+      .map((l) => "  " + l)
+      .join("\n"),
   );
   lines.push("");
+
+  // Token Usage section
+  const tokens: [string, string][] = [
+    ["Input:", formatNumber(stats.tokens_input)],
+    ["Output:", formatNumber(stats.tokens_output)],
+    ["Reasoning:", formatNumber(stats.tokens_reasoning)],
+    ["Cache Read:", formatNumber(stats.tokens_cache_read)],
+    ["Cache Write:", formatNumber(stats.tokens_cache_write)],
+    ["Total Cost:", `$${stats.total_cost.toFixed(4)}`],
+    ["DB size:", fmtBinaryBytes(stats.dbSize)],
+  ];
   lines.push("Token Usage (all sessions)");
-  lines.push(`  Input:                 ${formatNumber(stats.tokens_input)}`);
-  lines.push(`  Output:                ${formatNumber(stats.tokens_output)}`);
   lines.push(
-    `  Reasoning:             ${formatNumber(stats.tokens_reasoning)}`,
+    new Table()
+      .body(tokens)
+      .padding(2)
+      .border(false)
+      .toString()
+      .trimEnd()
+      .split("\n")
+      .map((l) => "  " + l)
+      .join("\n"),
   );
-  lines.push(
-    `  Cache Read:            ${formatNumber(stats.tokens_cache_read)}`,
-  );
-  lines.push(
-    `  Cache Write:           ${formatNumber(stats.tokens_cache_write)}`,
-  );
-  lines.push(`  Total Cost:            $${stats.total_cost.toFixed(4)}`);
   lines.push("");
+
+  // Time Range section
+  const time: [string, string][] = [
+    ["Oldest session:", formatTime(stats.oldest_session)],
+    ["Newest session:", formatTime(stats.newest_session)],
+  ];
   lines.push("Time Range");
   lines.push(
-    `  Oldest session:        ${formatTime(stats.oldest_session)}`,
-  );
-  lines.push(
-    `  Newest session:        ${formatTime(stats.newest_session)}`,
+    new Table()
+      .body(time)
+      .padding(2)
+      .border(false)
+      .toString()
+      .trimEnd()
+      .split("\n")
+      .map((l) => "  " + l)
+      .join("\n"),
   );
 
   return lines.join("\n");

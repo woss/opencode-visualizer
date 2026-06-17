@@ -116,3 +116,15 @@ export function barDualColored(
 export function fmtNum(n: number): string {
   return n.toLocaleString("en-US");
 }
+
+/** Format bytes as IEC binary units (KiB, MiB, GiB). */
+export function fmtBinaryBytes(n: number): string {
+  const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+  let i = 0;
+  let size = n;
+  while (size >= 1024 && i < units.length - 1) {
+    size /= 1024;
+    i++;
+  }
+  return `${i === 0 ? size : size.toFixed(1)} ${units[i]}`;
+}

@@ -7,6 +7,7 @@ tokens, costs, models, project activity.
 
 - **Runtime**: Deno 2.x (no Node.js, no npm)
 - **CLI framework**: `jsr:@cliffy/command@^1.0.0-rc.7`
+- **Table formatting**: `jsr:@cliffy/table@^1.0.0-rc.7`
 - **SQLite**: `jsr:@db/sqlite@^0.12.0` — direct SQL, no ORM
 - **Paths**: `jsr:@std/path@^1.0.0`
 - **Formatting**: `deno fmt` (no Prettier, no ESLint)
@@ -63,8 +64,8 @@ lib/
 
 ## Code Conventions
 
-- **Imports**: JSR specifiers only (`jsr:@cliffy/command`, `jsr:@db/sqlite`,
-  `jsr:@std/path`). No npm: specifiers.
+- **Imports**: JSR specifiers only (`jsr:@cliffy/command`, `jsr:@cliffy/table`,
+  `jsr:@db/sqlite`, `jsr:@std/path`). No npm: specifiers.
 - **Naming**: `camelCase` functions, `PascalCase` types/interfaces, `kebab-case`
   files.
 - **No classes** — pure functions, typed interfaces, no OOP. Zero class
@@ -133,8 +134,8 @@ lib/
   rendering separate from data.
 - **When touching dashboard**: modify `lib/dashboard.ts`. Uses box-drawing chars
   and ANSI escape codes directly.
-- **No external dependencies** beyond the 3 JSR imports (`@cliffy/command`,
-  `@db/sqlite`, `@std/path`).
+- **No external dependencies** beyond the 4 JSR imports (`@cliffy/command`,
+  `@cliffy/table`, `@db/sqlite`, `@std/path`).
 - **No runtime assertions or validation libraries** — manual guard clauses with
   descriptive error messages.
 - **No debug logging or console.log** outside of intended output.
