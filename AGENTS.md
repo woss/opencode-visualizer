@@ -64,8 +64,7 @@ lib/
 
 ## Code Conventions
 
-- **Imports**: JSR specifiers only (`jsr:@cliffy/command`, `jsr:@cliffy/table`,
-  `jsr:@db/sqlite`, `jsr:@std/path`). No npm: specifiers.
+- **Imports**: Prefer JSR specifiers; npm: specifiers also supported.
 - **Naming**: `camelCase` functions, `PascalCase` types/interfaces, `kebab-case`
   files.
 - **No classes** — pure functions, typed interfaces, no OOP. Zero class
