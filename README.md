@@ -10,7 +10,7 @@ ANSI terminal dashboard and CLI for exploring your
 [OpenCode](https://opencode.ai) database — sessions, tokens, costs, models, and
 project activity.
 
-![ocv dashboard](ocv-example.png)
+![ocv dashboard](https://u.macula.link/9BH9LsNYSJ6za1-x5QxLEA-7?preset=sys_sm)
 
 ## Install
 
