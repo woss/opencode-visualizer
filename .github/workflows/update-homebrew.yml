@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Homebrew
-        uses: homebrew/actions/setup-homebrew@v1
+        uses: homebrew/actions/setup-homebrew@main
       - name: Trust woss/tap
         run: brew trust woss/tap
       - uses: dawidd6/action-homebrew-bump-formula@v4
