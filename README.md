@@ -75,6 +75,7 @@ ocv sessions <path>        # List sessions matching directory path
 ocv session <id>           # Detailed info for a specific session
 ocv search <query>         # Search sessions by title or directory
 ocv rename --from-dir <old-dir> -d <new-dir>  # Batch-rename session directory
+ocv mcp                       # MCP stdio server for AI agent integration
 ocv --help                 # Top-level help
 ocv <command> --help       # Per-command help
 ocv --version              # Show version
@@ -91,6 +92,7 @@ ocv dash --output json               # Dashboard data as JSON
 ocv overview --output json           # Overview as JSON
 ocv search <query> --output json     # Search results as JSON
 ocv rename --from-dir ... -d ... --output json   # Rename result as JSON
+ocv mcp                       # MCP server — communicates via JSON-RPC on stdio (no --output flag)
 ```
 
 ### Excluding directories
@@ -128,6 +130,33 @@ The `sessions` and `search` commands show a "Type" column:
 - **Main** — top-level session (no parent)
 - **Sub** — subagent/delegated session (has a parent_id)
 
+### MCP server
+
+`ocv` includes a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) stdio server for AI agent tool access. Run `ocv mcp` to start the server — it communicates over stdin/stdout via JSON-RPC, exposing database queries as structured, typed tools.
+
+**Available tools:** `get_stats`, `get_overview`, `list_sessions`, `get_session`, `search_sessions`, `get_top_models`, `get_top_providers`, `get_weekly_activity`
+
+Register with OpenCode by adding to `.opencode/opencode.jsonc` in any project:
+
+```json
+"ocv": {
+  "type": "local",
+  "command": ["ocv", "mcp"],
+  "enabled": true
+}
+```
+
+Or from source (requires Deno):
+```json
+"ocv": {
+  "type": "local",
+  "command": ["deno", "run", "-A", "main.ts", "mcp"],
+  "enabled": true
+}
+```
+
+Agents in that workspace can then query session data, token usage, costs, and more through structured tool calls.
+
 ## Commands
 
 | Command                            | Description                                                                                                                |
@@ -139,6 +168,7 @@ The `sessions` and `search` commands show a "Type" column:
 | `session <id>`                     | Single session detail with messages and todo breakdown                                                                     |
 | `search <query>`                   | Full-text search over session titles and directories                                                                       |
 | `rename --from-dir <old> -d <new>` | Batch-rename session directory and path fields when project moves                                                          |
+| `mcp`                              | Start MCP stdio server — exposes DB queries as structured tools for AI agents                                               |
 
 ## Semantic versioning
 
