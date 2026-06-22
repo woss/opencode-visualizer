@@ -6,6 +6,9 @@
     ["@semantic-release/exec", {
       "prepareCmd": "echo \"export const VERSION = '${nextRelease.version}';\" > version.ts"
     }],
+    ["@semantic-release/git", {
+      "assets": ["version.ts"]
+    }],
     ["@semantic-release/github"]
   ]
 }

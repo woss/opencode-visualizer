@@ -10,6 +10,8 @@ import {
   searchSessions,
 } from "./lib/db.ts";
 import { showDashboard } from "./lib/dashboard.ts";
+import { createMcpServer } from "./lib/mcp.ts";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { showSpinner } from "./lib/spinner.ts";
 import { VERSION } from "./version.ts";
 import {
@@ -214,6 +216,17 @@ async function main() {
         db.close();
       } catch (cause) {
         spinner.stop();
+        console.error(`Error: ${cause}`);
+        Deno.exit(1);
+      }
+    })
+    .command("mcp", "Start MCP stdio server for LLM tool access")
+    .action(async () => {
+      try {
+        const server = createMcpServer(dbPath);
+        const transport = new StdioServerTransport();
+        await server.connect(transport);
+      } catch (cause) {
         console.error(`Error: ${cause}`);
         Deno.exit(1);
       }
