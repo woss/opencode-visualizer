@@ -132,9 +132,14 @@ The `sessions` and `search` commands show a "Type" column:
 
 ### MCP server
 
-`ocv` includes a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) stdio server for AI agent tool access. Run `ocv mcp` to start the server — it communicates over stdin/stdout via JSON-RPC, exposing database queries as structured, typed tools.
+`ocv` includes a [Model Context Protocol](https://modelcontextprotocol.io) (MCP)
+stdio server for AI agent tool access. Run `ocv mcp` to start the server — it
+communicates over stdin/stdout via JSON-RPC, exposing database queries as
+structured, typed tools.
 
-**Available tools:** `get_stats`, `get_overview`, `list_sessions`, `get_session`, `search_sessions`, `get_top_models`, `get_top_providers`, `get_weekly_activity`
+**Available tools:** `get_stats`, `get_overview`, `list_sessions`,
+`get_session`, `search_sessions`, `get_top_models`, `get_top_providers`,
+`get_weekly_activity`
 
 Register with OpenCode by adding to `.opencode/opencode.jsonc` in any project:
 
@@ -147,6 +152,7 @@ Register with OpenCode by adding to `.opencode/opencode.jsonc` in any project:
 ```
 
 Or from source (requires Deno):
+
 ```json
 "ocv": {
   "type": "local",
@@ -155,7 +161,8 @@ Or from source (requires Deno):
 }
 ```
 
-Agents in that workspace can then query session data, token usage, costs, and more through structured tool calls.
+Agents in that workspace can then query session data, token usage, costs, and
+more through structured tool calls.
 
 ## Commands
 
@@ -168,7 +175,7 @@ Agents in that workspace can then query session data, token usage, costs, and mo
 | `session <id>`                     | Single session detail with messages and todo breakdown                                                                     |
 | `search <query>`                   | Full-text search over session titles and directories                                                                       |
 | `rename --from-dir <old> -d <new>` | Batch-rename session directory and path fields when project moves                                                          |
-| `mcp`                              | Start MCP stdio server — exposes DB queries as structured tools for AI agents                                               |
+| `mcp`                              | Start MCP stdio server — exposes DB queries as structured tools for AI agents                                              |
 
 ## Semantic versioning
 
