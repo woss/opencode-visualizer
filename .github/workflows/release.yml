@@ -55,9 +55,41 @@ jobs:
           tag="v${{ steps.semantic.outputs.new_release_version }}"
           gh release upload "$tag" ocv-*.tar.gz
 
-      - name: Trigger Homebrew tap update
+      - name: Update Homebrew formula
         if: steps.semantic.outputs.new_release_published == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          gh workflow run update-homebrew.yml --ref main -f tag=v${{ steps.semantic.outputs.new_release_version }}
+          TAG="v${{ steps.semantic.outputs.new_release_version }}"
+          VERSION="${{ steps.semantic.outputs.new_release_version }}"
+
+          git clone https://x-access-token:${GH_TOKEN}@github.com/woss/homebrew-tap.git /tmp/homebrew-tap
+          cd /tmp/homebrew-tap
+
+          # Update version line
+          sed -i 's/version "[0-9.]*"/version "'"${VERSION}"'"/' Formula/ocv.rb
+
+          # Update all URL tags (vX.Y.Z → vNEW in download paths)
+          sed -i "s|/releases/download/v[0-9.]*/|/releases/download/${TAG}/|" Formula/ocv.rb
+
+          # For each platform asset, compute SHA and replace
+          for asset in \
+            ocv-aarch64-macos.tar.gz ocv-x86_64-macos.tar.gz \
+            ocv-aarch64-linux.tar.gz ocv-x86_64-linux.tar.gz
+          do
+            gh release download "$TAG" \
+              --repo woss/opencode-visualizer \
+              --pattern "$asset" \
+              --dir /tmp
+            new_sha=$(sha256sum "/tmp/$asset" | cut -d' ' -f1)
+            # Find old sha by looking at sha256 line after the URL for this asset
+            old_sha=$(grep -A1 "url.*${asset}" Formula/ocv.rb | \
+              tail -1 | sed 's/.*sha256 "\(.*\)".*/\1/')
+            sed -i "s/sha256 \"${old_sha}\"/sha256 \"${new_sha}\"/" Formula/ocv.rb
+          done
+
+          git config user.name "Daniel Maricic"
+          git config user.email "woss@users.noreply.github.com"
+          git add Formula/ocv.rb
+          git commit -m "ocv ${VERSION}"
+          git push
