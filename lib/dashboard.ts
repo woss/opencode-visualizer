@@ -117,6 +117,7 @@ export interface DashOptions {
   exclude?: string;
   names?: string[];
   jsonMode: boolean;
+  mergeSameNames?: boolean;
 }
 
 // ── Dashboard ────────────────────────────────────────────────────
@@ -167,6 +168,32 @@ export async function showDashboard(
       return true;
     });
   }
+
+  // Merge directories with same basename into a single row
+  if (opts.mergeSameNames) {
+    const merged = new Map<string, typeof overview[0]>();
+    for (const row of overview) {
+      const name = row.directory.split("/").pop() || row.directory;
+      const existing = merged.get(name);
+      if (existing) {
+        existing.total += row.total;
+        existing.active += row.active;
+        existing.main_count += row.main_count;
+        existing.sub_count += row.sub_count;
+        existing.tokens_input += row.tokens_input;
+        existing.tokens_output += row.tokens_output;
+        existing.tokens_reasoning += row.tokens_reasoning;
+        existing.tokens_cache_read += row.tokens_cache_read;
+        existing.tokens_cache_write += row.tokens_cache_write;
+        existing.cost += row.cost;
+        existing.last_active = Math.max(existing.last_active, row.last_active);
+      } else {
+        merged.set(name, { ...row, directory: name });
+      }
+    }
+    overview = Array.from(merged.values())
+      .sort((a, b) => b.total - a.total);
+  }
   const weekly = getSessionsByWeek(db, filterNames);
   const topModels = getTopModels(db, topCount, filterNames);
   const topProviders = getTopProviders(db, topCount, filterNames);
@@ -209,8 +236,8 @@ export async function showDashboard(
   // ── Prepare directory data ───────────────────────────────
 
   const dirTopCount = filterNames ? filterNames.length : topCount;
-  const maxDisplay = dirTopCount;
-  const hasMore = overview.length > maxDisplay;
+  const maxDisplay = filterNames ? overview.length : dirTopCount;
+  const hasMore = !filterNames && overview.length > maxDisplay;
   const displayList = hasMore
     ? overview.slice(0, maxDisplay - 1).concat({
       ...overview[maxDisplay - 1],

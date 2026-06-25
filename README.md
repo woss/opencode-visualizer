@@ -64,6 +64,7 @@ deno task compile-all   # Produces ocv-x86_64-linux, ocv-aarch64-macos, ocv-aarc
 ## Usage
 
 ```bash
+ocv .                       # Dashboard filtered to current directory
 ocv                        # Show per-directory session overview (default)
 ocv stats                  # Detailed statistics
 ocv dash                   # Dashboard with bars and charts
@@ -71,6 +72,7 @@ ocv dash --top=5           # Show top 5 items per section
 ocv dash --exclude=simstore,infra  # Exclude directories
 ocv dash --name=surrealdb-orm,woss.io  # Focus on specific directories
 ocv dash --all             # Show all items
+ocv dash --merge-same-names  # Merge same-named directories into one row
 ocv sessions <path>        # List sessions matching directory path
 ocv session <id>           # Detailed info for a specific session
 ocv search <query>         # Search sessions by title or directory
@@ -123,6 +125,20 @@ Works on all dashboard panels — directories, models, providers, weekly activit
 and costs. The directory section adapts to show exactly the named directories
 (instead of the top N). Accepts comma-separated directory names (not paths).
 
+### Merging same-named directories
+
+If you have projects in multiple locations (different clones, worktrees) with
+the same directory name, the dashboard shows each path as a separate row. Use
+`--merge-same-names` to collapse them into a single row by basename:
+
+```bash
+ocv dash --merge-same-names
+ocv dash --name=my-project --merge-same-names
+```
+
+The path-arg shortcut (`ocv .`) enables this automatically — current-directory
+sessions from all clones/worktrees are merged into one row.
+
 ### Session types
 
 The `sessions` and `search` commands show a "Type" column:
@@ -166,16 +182,17 @@ more through structured tool calls.
 
 ## Commands
 
-| Command                            | Description                                                                                                                |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `(no args)` / `overview`           | Per-directory session overview table                                                                                       |
-| `stats`                            | Full statistics: sessions (active/archived), projects, tokens, cost, most-used model, app version range                    |
-| `dash`                             | ANSI dashboard with bars per directory, model, provider, weekly activity. Supports `--top`, `--all`, `--name`, `--exclude` |
-| `sessions <path>`                  | Filtered session list matching a directory path                                                                            |
-| `session <id>`                     | Single session detail with messages and todo breakdown                                                                     |
-| `search <query>`                   | Full-text search over session titles and directories                                                                       |
-| `rename --from-dir <old> -d <new>` | Batch-rename session directory and path fields when project moves                                                          |
-| `mcp`                              | Start MCP stdio server — exposes DB queries as structured tools for AI agents                                              |
+| Command                            | Description                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `(no args)` / `overview`           | Per-directory session overview table                                                                                                             |
+| `stats`                            | Full statistics: sessions (active/archived), projects, tokens, cost, most-used model, app version range                                          |
+| `dash`                             | ANSI dashboard with bars per directory, model, provider, weekly activity. Supports `--top`, `--all`, `--name`, `--exclude`, `--merge-same-names` |
+| `.` (path arg)                     | Dashboard filtered to the given directory's sessions — resolve `.`, `./x`, `/abs/path` to dir basename, auto-merges same-named dirs              |
+| `sessions <path>`                  | Filtered session list matching a directory path                                                                                                  |
+| `session <id>`                     | Single session detail with messages and todo breakdown                                                                                           |
+| `search <query>`                   | Full-text search over session titles and directories                                                                                             |
+| `rename --from-dir <old> -d <new>` | Batch-rename session directory and path fields when project moves                                                                                |
+| `mcp`                              | Start MCP stdio server — exposes DB queries as structured tools for AI agents                                                                    |
 
 ## Semantic versioning
 
