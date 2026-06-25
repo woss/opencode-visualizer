@@ -61,6 +61,42 @@ function formatOutput<T>(
 async function main() {
   const dbPath = resolveDbPath();
 
+  // Single path arg → show dashboard filtered to that directory
+  const firstArg = Deno.args[0];
+  if (
+    Deno.args.length >= 1 &&
+    (firstArg === "." || firstArg === ".." ||
+      firstArg.startsWith("./") || firstArg.startsWith("../") ||
+      firstArg.startsWith("/") || firstArg.startsWith("~"))
+  ) {
+    // Detect --output json from remaining args
+    let jsonMode = false;
+    for (let i = 1; i < Deno.args.length; i++) {
+      const a = Deno.args[i];
+      if (a === "--output" || a === "-o") {
+        if (i + 1 < Deno.args.length && Deno.args[i + 1] === "json") {
+          jsonMode = true;
+        }
+        break;
+      }
+      if (a.startsWith("--output=")) {
+        jsonMode = a.slice(9) === "json";
+        break;
+      }
+    }
+
+    const abs = resolve(firstArg);
+    const dirName = abs.split("/").pop() || abs;
+    await showDashboard(dbPath, {
+      top: 10,
+      all: false,
+      names: [dirName],
+      jsonMode,
+      mergeSameNames: true,
+    });
+    return;
+  }
+
   // No args → show dashboard (default behavior)
   if (Deno.args.length === 0) {
     await showDashboard(dbPath, { top: 10, all: false, jsonMode: false });
@@ -89,6 +125,10 @@ async function main() {
       "--name <dirs:string>",
       "Filter all panels to specific directories (comma-separated names)",
     )
+    .option(
+      "--merge-same-names",
+      "Merge directories with same basename into one row",
+    )
     .action(async (options) => {
       const names = options.name
         ? options.name.split(",").map((n: string) => n.trim()).filter((
@@ -101,6 +141,7 @@ async function main() {
         exclude: options.exclude,
         names,
         jsonMode: options.output === "json",
+        mergeSameNames: options.mergeSameNames ?? false,
       });
     })
     .command("sessions", "List sessions matching a directory path pattern")
