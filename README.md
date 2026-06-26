@@ -157,6 +157,9 @@ structured, typed tools.
 `get_session`, `search_sessions`, `get_top_models`, `get_top_providers`,
 `get_weekly_activity`
 
+`get_overview` accepts an optional `directory` string — when provided, returns
+aggregate stats for only that directory. Omit for all directories.
+
 Register with OpenCode by adding to `.opencode/opencode.jsonc` in any project:
 
 ```json
