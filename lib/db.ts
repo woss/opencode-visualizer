@@ -269,9 +269,32 @@ export async function getDbStats(
 /**
  * Group sessions by directory returning aggregate stats per directory.
  */
-export function getDirectoryOverview(db: Database): DirectoryOverviewRow[] {
-  return convertRow(
-    db.prepare(`
+export function getDirectoryOverview(
+  db: Database,
+  directory?: string,
+): DirectoryOverviewRow[] {
+  const sql = directory
+    ? `
+    SELECT
+      directory,
+      COUNT(*) AS total,
+      SUM(CASE WHEN time_archived IS NULL THEN 1 ELSE 0 END) AS active,
+      SUM(CASE WHEN time_archived IS NOT NULL THEN 1 ELSE 0 END) AS archived,
+      SUM(CASE WHEN parent_id IS NULL THEN 1 ELSE 0 END) AS main_count,
+      SUM(CASE WHEN parent_id IS NOT NULL THEN 1 ELSE 0 END) AS sub_count,
+      COALESCE(SUM(tokens_input), 0) AS tokens_input,
+      COALESCE(SUM(tokens_output), 0) AS tokens_output,
+      COALESCE(SUM(tokens_reasoning), 0) AS tokens_reasoning,
+      COALESCE(SUM(tokens_cache_read), 0) AS tokens_cache_read,
+      COALESCE(SUM(tokens_cache_write), 0) AS tokens_cache_write,
+      COALESCE(SUM(cost), 0) AS cost,
+      MAX(time_created) AS last_active
+    FROM session
+    WHERE directory = ?
+    GROUP BY directory
+    ORDER BY total DESC
+  `
+    : `
     SELECT
       directory,
       COUNT(*) AS total,
@@ -289,7 +312,9 @@ export function getDirectoryOverview(db: Database): DirectoryOverviewRow[] {
     FROM session
     GROUP BY directory
     ORDER BY total DESC
-  `).all(),
+  `;
+  return convertRow(
+    directory ? db.prepare(sql).all(directory) : db.prepare(sql).all(),
   ) as DirectoryOverviewRow[];
 }
 

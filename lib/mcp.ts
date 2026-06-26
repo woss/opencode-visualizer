@@ -51,7 +51,12 @@ export function createMcpServer(dbPath: string): Server {
         description: "Get per-directory session overview with aggregate stats",
         inputSchema: {
           type: "object",
-          properties: {},
+          properties: {
+            directory: {
+              type: "string",
+              description: "Optional. Filter to one directory. Omit for all.",
+            },
+          },
           required: [],
         },
       },
@@ -153,7 +158,10 @@ export function createMcpServer(dbPath: string): Server {
             result = await getDbStats(db, dbPath);
             break;
           case "get_overview":
-            result = getDirectoryOverview(db);
+            result = getDirectoryOverview(
+              db,
+              typeof args?.directory === "string" ? args.directory : undefined,
+            );
             break;
           case "list_sessions":
             if (!args?.directory || typeof args.directory !== "string") {

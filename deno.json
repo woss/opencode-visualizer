@@ -13,7 +13,8 @@
     "compile": "deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv main.ts",
     "compile-all": "deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-x86_64-linux --target x86_64-unknown-linux-gnu main.ts && deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-x86_64-macos --target x86_64-apple-darwin main.ts && deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-aarch64-macos --target aarch64-apple-darwin main.ts && deno compile --allow-read --allow-write --allow-env --allow-ffi --output ocv-aarch64-linux --target aarch64-unknown-linux-gnu main.ts",
     "start": "deno run --allow-read --allow-write --allow-env --allow-ffi --allow-net main.ts",
-    "check": "deno check main.ts"
+    "check": "deno check main.ts",
+    "test": "deno test --allow-read --allow-write --allow-env --allow-ffi"
   },
   "imports": {
     "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7",
