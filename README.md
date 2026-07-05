@@ -165,13 +165,13 @@ aggregate stats for only that directory. Omit for all directories.
 per model sorted by projected total (cheapest first), with an "Actual" row at
 the top.
 
-| Parameter           | Type   | Required | Description                            |
-| ------------------- | ------ | -------- | -------------------------------------- |
-| `tokens_input`      | number | yes      | Total input tokens                     |
-| `tokens_output`     | number | yes      | Total output tokens                    |
-| `tokens_cache_read` | number | yes      | Total cache read tokens                |
-| `tokens_cache_write`| number | yes      | Total cache write tokens               |
-| `actual_cost`       | number | yes      | Actual cost from the database          |
+| Parameter            | Type   | Required | Description                   |
+| -------------------- | ------ | -------- | ----------------------------- |
+| `tokens_input`       | number | yes      | Total input tokens            |
+| `tokens_output`      | number | yes      | Total output tokens           |
+| `tokens_cache_read`  | number | yes      | Total cache read tokens       |
+| `tokens_cache_write` | number | yes      | Total cache write tokens      |
+| `actual_cost`        | number | yes      | Actual cost from the database |
 
 **Available prompts:** `token-stats`, `cost-project`
 
