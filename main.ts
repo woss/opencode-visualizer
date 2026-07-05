@@ -13,6 +13,7 @@ import { showDashboard } from "./lib/dashboard.ts";
 import { createMcpServer } from "./lib/mcp.ts";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { showSpinner } from "./lib/spinner.ts";
+import { getOcvLogger, initLogger } from "./lib/logger.ts";
 import { VERSION } from "./version.ts";
 import {
   formatDbStats,
@@ -60,6 +61,7 @@ function formatOutput<T>(
  */
 async function main() {
   const dbPath = resolveDbPath();
+  await initLogger();
 
   // Single path arg → show dashboard filtered to that directory
   const firstArg = Deno.args[0];
@@ -156,7 +158,10 @@ async function main() {
         db.close();
       } catch (cause) {
         spinner.stop();
-        console.error(`Error: ${cause}`);
+        getOcvLogger().error("Command failed: {command}", {
+          command: "sessions",
+          cause: String(cause),
+        });
         Deno.exit(1);
       }
     })
@@ -182,7 +187,10 @@ async function main() {
         db.close();
       } catch (cause) {
         spinner.stop();
-        console.error(`Error: ${cause}`);
+        getOcvLogger().error("Command failed: {command}", {
+          command: "session",
+          cause: String(cause),
+        });
         Deno.exit(1);
       }
     })
@@ -198,7 +206,10 @@ async function main() {
         db.close();
       } catch (cause) {
         spinner.stop();
-        console.error(`Error: ${cause}`);
+        getOcvLogger().error("Command failed: {command}", {
+          command: "search",
+          cause: String(cause),
+        });
         Deno.exit(1);
       }
     })
@@ -223,7 +234,10 @@ async function main() {
         db.close();
       } catch (cause) {
         spinner.stop();
-        console.error(`Error: ${cause}`);
+        getOcvLogger().error("Command failed: {command}", {
+          command: "rename",
+          cause: String(cause),
+        });
         Deno.exit(1);
       }
     })
@@ -242,7 +256,10 @@ async function main() {
         db.close();
       } catch (cause) {
         spinner.stop();
-        console.error(`Error: ${cause}`);
+        getOcvLogger().error("Command failed: {command}", {
+          command: "stats",
+          cause: String(cause),
+        });
         Deno.exit(1);
       }
     })
@@ -257,7 +274,10 @@ async function main() {
         db.close();
       } catch (cause) {
         spinner.stop();
-        console.error(`Error: ${cause}`);
+        getOcvLogger().error("Command failed: {command}", {
+          command: "overview",
+          cause: String(cause),
+        });
         Deno.exit(1);
       }
     })
@@ -268,7 +288,10 @@ async function main() {
         const transport = new StdioServerTransport();
         await server.connect(transport);
       } catch (cause) {
-        console.error(`Error: ${cause}`);
+        getOcvLogger().error("Command failed: {command}", {
+          command: "mcp",
+          cause: String(cause),
+        });
         Deno.exit(1);
       }
     })
