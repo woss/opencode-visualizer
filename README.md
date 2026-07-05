@@ -155,10 +155,34 @@ structured, typed tools.
 
 **Available tools:** `get_stats`, `get_overview`, `list_sessions`,
 `get_session`, `search_sessions`, `get_top_models`, `get_top_providers`,
-`get_weekly_activity`
+`get_weekly_activity`, `project_cost`
 
 `get_overview` accepts an optional `directory` string — when provided, returns
 aggregate stats for only that directory. Omit for all directories.
+
+`project_cost` computes projected costs for a project across 16 Zen models
+(OpenCode pricing). Takes token counts and actual cost, returns cost projections
+per model sorted by projected total (cheapest first), with an "Actual" row at
+the top.
+
+| Parameter           | Type   | Required | Description                            |
+| ------------------- | ------ | -------- | -------------------------------------- |
+| `tokens_input`      | number | yes      | Total input tokens                     |
+| `tokens_output`     | number | yes      | Total output tokens                    |
+| `tokens_cache_read` | number | yes      | Total cache read tokens                |
+| `tokens_cache_write`| number | yes      | Total cache write tokens               |
+| `actual_cost`       | number | yes      | Actual cost from the database          |
+
+**Available prompts:** `token-stats`, `cost-project`
+
+- **`token-stats`** — Returns structured token usage statistics (input, output,
+  reasoning, cache read, cache write) and cost for a project. Accepts an
+  optional `directory` argument — if omitted, detects the current project
+  directory automatically.
+- **`cost-project`** — Returns projected costs for a project across all Zen
+  models, comparing projected total against the actual cost. Accepts an optional
+  `directory` argument — if omitted, detects the current project directory
+  automatically.
 
 Register with OpenCode by adding to `.opencode/opencode.jsonc` in any project:
 
