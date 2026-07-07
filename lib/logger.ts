@@ -33,6 +33,7 @@ export async function initLogger(logDir?: string): Promise<Logger> {
       }),
     },
     loggers: [
+      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: [] },
       { category: ["ocv"], lowestLevel: "info", sinks: ["console", "file"] },
       {
         category: ["ocv", "mcp"],
