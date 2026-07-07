@@ -290,7 +290,7 @@ export function getDirectoryOverview(
       COALESCE(SUM(cost), 0) AS cost,
       MAX(time_created) AS last_active
     FROM session
-    WHERE directory = ?
+    WHERE directory LIKE '%' || ? || '%'
     GROUP BY directory
     ORDER BY total DESC
   `
